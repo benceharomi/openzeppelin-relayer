@@ -1,8 +1,8 @@
+import { CommandRequest } from "./command-request";
+import { loadAndRenderCommandConfirmationTemplate } from "./template";
 import { PluginAPI } from "../../lib/plugin";
 import { sendSmtpRequest } from "./smtp";
 import { StateConfig } from "./config";
-import { CommandRequest } from "./command-request";
-import { loadAndRenderCommandConfirmationTemplate } from "./template";
 
 export async function commandHandler(
   api: PluginAPI,

@@ -1,7 +1,7 @@
-import { existsSync, readFileSync } from "fs";
-import { join } from "path";
 import { CommandRequest } from "./command-request";
 import { escape } from "html-escaper";
+import { existsSync, readFileSync } from "fs";
+import { join } from "path";
 
 export function loadAndRenderCommandConfirmationTemplate(
   request: CommandRequest

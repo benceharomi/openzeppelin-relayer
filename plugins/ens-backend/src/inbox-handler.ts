@@ -1,10 +1,10 @@
 import { ethers } from "ethers";
-import { PluginAPI } from "../../lib/plugin";
 import { fromEmailBody } from "./command-request";
-import { StateConfig } from "./config";
 import { generateProof } from "./prove";
-import { sendSmtpRequest } from "./smtp";
 import { loadAndRenderTransactionSuccessTemplate } from "./template";
+import { PluginAPI } from "../../lib/plugin";
+import { sendSmtpRequest } from "./smtp";
+import { StateConfig } from "./config";
 
 const PROOF_ENCODER_ABI = [
   {
