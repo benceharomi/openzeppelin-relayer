@@ -6,7 +6,11 @@ import { join } from "path";
 export function loadAndRenderCommandConfirmationTemplate(
   request: CommandRequest
 ): string {
-  const templatePath = join(__dirname, "templates/command_confirmation.html");
+  const templatePath = join(
+    __dirname,
+    "..",
+    "templates/command_confirmation.html"
+  );
 
   if (!existsSync(templatePath)) {
     throw new Error(`Template file not found: ${templatePath}`);
@@ -29,7 +33,11 @@ export function loadAndRenderCommandConfirmationTemplate(
 export function loadAndRenderTransactionSuccessTemplate(
   txHash: string
 ): string {
-  const templatePath = join(__dirname, "templates/transaction_success.html");
+  const templatePath = join(
+    __dirname,
+    "..",
+    "templates/transaction_success.html"
+  );
 
   if (!existsSync(templatePath)) {
     throw new Error(`Template file not found: ${templatePath}`);

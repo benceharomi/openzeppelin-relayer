@@ -46,27 +46,34 @@ const PROOF_ENCODER_ABI = [
   },
 ];
 
+export type InboxHandlerRequest = {
+  emailBody: string;
+};
+
 export async function inboxHandler(
   api: PluginAPI,
   config: StateConfig,
-  params: { emailBody: string }
+  request: InboxHandlerRequest
 ): Promise<string> {
-  if (!params || !params.emailBody) {
+  if (!request.emailBody) {
     throw new Error("Email body parameter is required");
   }
-  const { emailBody } = params;
 
   console.info("Received inbox request");
 
-  const commandRequest = await fromEmailBody(emailBody).catch((error) => {
-    console.error("Failed to get command request:", error);
-    throw new Error("Failed to get command request");
-  });
+  const commandRequest = await fromEmailBody(request.emailBody).catch(
+    (error) => {
+      console.error("Failed to get command request:", error);
+      throw new Error("Failed to get command request");
+    }
+  );
 
-  const proof = await generateProof(emailBody, config.prover).catch((error) => {
-    console.error("Failed to generate proof:", error);
-    throw new Error("Failed to generate proof");
-  });
+  const proof = await generateProof(request.emailBody, config.prover).catch(
+    (error) => {
+      console.error("Failed to generate proof:", error);
+      throw new Error("Failed to generate proof");
+    }
+  );
 
   const chain = config.rpc[0];
   if (!chain) {

@@ -1,28 +1,39 @@
-import { CommandRequest } from "./command-request";
 import { loadAndRenderCommandConfirmationTemplate } from "./template";
 import { PluginAPI } from "../../lib/plugin";
 import { sendSmtpRequest } from "./smtp";
 import { StateConfig } from "./config";
 
+export type CommandHandlerRequest = {
+  email: string;
+  command: string;
+  verifier: string;
+};
+
 export async function commandHandler(
   api: PluginAPI,
   config: StateConfig,
-  params: { commandRequest: CommandRequest }
+  request: CommandHandlerRequest
 ): Promise<string> {
-  if (!params || !params.commandRequest) {
-    throw new Error("Request parameter is required");
+  if (!request.email) {
+    throw new Error("Email parameter is required");
   }
 
-  const { commandRequest } = params;
+  if (!request.command) {
+    throw new Error("Command parameter is required");
+  }
 
-  console.info("Command request:", commandRequest);
+  if (!request.verifier) {
+    throw new Error("Verifier parameter is required");
+  }
+
+  console.info("Received command request");
 
   await sendSmtpRequest(
     {
-      to: commandRequest.email,
-      subject: `[Reply Needed] ${commandRequest.command}`,
-      bodyPlain: commandRequest.command,
-      bodyHtml: loadAndRenderCommandConfirmationTemplate(commandRequest),
+      to: request.email,
+      subject: `[Reply Needed] ${request.command}`,
+      bodyPlain: request.command,
+      bodyHtml: loadAndRenderCommandConfirmationTemplate(request),
     },
     config.smtpUrl
   );

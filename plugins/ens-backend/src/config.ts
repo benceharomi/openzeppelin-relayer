@@ -24,7 +24,7 @@ export interface StateConfig {
 }
 
 export function loadConfig(): StateConfig {
-  const configPath = join(__dirname, "config.json");
+  const configPath = join(__dirname, "..", "config.json");
 
   if (!existsSync(configPath)) {
     throw new Error(`Configuration file not found: ${configPath}`);
