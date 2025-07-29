@@ -1,10 +1,16 @@
 import { join } from "path";
-import { commandHandler, CommandHandlerRequest } from "./command-handler";
-import { inboxHandler, InboxHandlerRequest } from "./inbox-handler";
-import { fromFile } from "./state";
+import { createInboxHandler } from "./handlers/inbox/handler.factory";
 import { PluginAPI, runPlugin } from "../../lib/plugin";
+import { createSmtpService } from "./services/smtp";
+import { createProverService } from "./services/prover/service.factory";
+import { createVerifierService } from "./services/verifier/service.factory";
+import { createCommandHandler } from "./handlers/command";
+import { CommandHandlerRequest } from "./handlers/command";
+import { InboxHandlerRequest } from "./handlers/inbox";
+import { createTemplateService } from "./services/template";
+import { createConfigService } from "./services/config";
 
-type Params =
+type PluginRequest =
   | {
       action: "command";
       request: CommandHandlerRequest;
@@ -15,20 +21,46 @@ type Params =
     };
 
 async function main(
-  api: PluginAPI,
-  { action, request }: Params
+  pluginApi: PluginAPI,
+  { action, request }: PluginRequest
 ): Promise<string> {
   if (!action || !request) {
     throw new Error("Action and request are required");
   }
 
-  const config = fromFile(join(__dirname, "..", "config.json"));
+  const configService = createConfigService({
+    configPath: join(__dirname, "..", "config.json"),
+  });
+
+  const config = configService.load();
+
+  const smtpService = createSmtpService({
+    config: config.smtp,
+  });
+  const proverService = createProverService({
+    config: config.prover,
+  });
+  const verifierService = createVerifierService({
+    config: config.verifier,
+    pluginApi: pluginApi,
+  });
+  const templateService = createTemplateService({
+    config: config.template,
+  });
 
   switch (action) {
     case "command":
-      return await commandHandler(api, config, request);
+      return await createCommandHandler({
+        smtpService,
+        templateService,
+      })(request);
     case "inbox":
-      return await inboxHandler(api, config, request);
+      return await createInboxHandler({
+        smtpService,
+        proverService,
+        verifierService,
+        templateService,
+      })(request);
     default:
       throw new Error(`Unknown action: ${action}`);
   }

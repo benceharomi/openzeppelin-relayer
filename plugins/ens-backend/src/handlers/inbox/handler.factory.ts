@@ -1,5 +1,41 @@
+import { InboxHandler, InboxHandlerDeps } from "./types";
 import { unescape } from "html-escaper";
 import { decode } from "quoted-printable";
+
+export const createInboxHandler =
+  ({
+    smtpService,
+    proverService,
+    verifierService,
+    templateService,
+  }: InboxHandlerDeps): InboxHandler =>
+  async (request) => {
+    console.info("Received inbox request", request);
+
+    const commandRequest = await fromEmailBody(request.emailBody);
+
+    const proofResponse = await proverService.generateProof(request.emailBody);
+
+    const { txHash } = await verifierService.verifyProof(
+      commandRequest.verifier,
+      proofResponse.proof,
+      proofResponse.publicOutputs
+    );
+
+    await smtpService.sendRequest({
+      to: commandRequest.email,
+      subject: "Your Request has been Completed",
+      bodyPlain: `Your request has been successfully processed. Transaction hash: ${txHash}`,
+      bodyHtml: await templateService.loadAndRenderTemplate(
+        "transaction_success.html",
+        {
+          ["tx_hash"]: txHash,
+        }
+      ),
+    });
+
+    return "success";
+  };
 
 export type CommandRequest = {
   email: string;
