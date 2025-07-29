@@ -29,7 +29,8 @@ async function main(
   }
 
   const configService = createConfigService({
-    configPath: join(__dirname, "..", "config.json"),
+    libDirPath: join(__dirname, ".."),
+    configFileName: "config.json",
   });
 
   const config = configService.load();

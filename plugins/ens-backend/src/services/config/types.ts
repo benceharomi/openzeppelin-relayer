@@ -4,7 +4,8 @@ import { VerifierConfig } from "../verifier";
 import { TemplateConfig } from "../template";
 
 export type ConfigDeps = {
-  configPath: string;
+  libDirPath: string;
+  configFileName: string;
 };
 
 type ChainConfig = {

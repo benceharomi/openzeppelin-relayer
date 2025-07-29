@@ -3,8 +3,10 @@ import { ConfigDeps, ConfigFile, Load } from "./types";
 import { join } from "path";
 
 export const createLoad =
-  ({ configPath }: ConfigDeps): Load =>
+  ({ libDirPath, configFileName }: ConfigDeps): Load =>
   () => {
+    const configPath = join(libDirPath, configFileName);
+
     if (!existsSync(configPath)) {
       throw new Error(`Configuration file not found: ${configPath}`);
     }
@@ -54,7 +56,7 @@ export const createLoad =
           rpcUrl: configFile.rpc[0].url,
         },
         template: {
-          templateDirPath: join(__dirname, "..", "templates"),
+          templateDirPath: join(libDirPath, "templates"),
         },
       };
     } catch (error) {
