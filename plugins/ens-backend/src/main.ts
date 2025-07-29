@@ -1,6 +1,7 @@
+import { join } from "path";
 import { commandHandler, CommandHandlerRequest } from "./command-handler";
 import { inboxHandler, InboxHandlerRequest } from "./inbox-handler";
-import { loadConfig } from "./config";
+import { fromFile } from "./state";
 import { PluginAPI, runPlugin } from "../../lib/plugin";
 
 type Params =
@@ -21,7 +22,7 @@ async function main(
     throw new Error("Action and request are required");
   }
 
-  const config = loadConfig();
+  const config = fromFile(join(__dirname, "..", "config.json"));
 
   switch (action) {
     case "command":

@@ -1,4 +1,4 @@
-interface SmtpRequest {
+export type SmtpRequest = {
   to: string;
   subject: string;
   bodyPlain: string;
@@ -6,9 +6,9 @@ interface SmtpRequest {
   reference?: string;
   replyTo?: string;
   bodyAttachments?: string;
-}
+};
 
-export async function sendSmtpRequest(
+export async function sendRequest(
   request: SmtpRequest,
   smtpUrl: string
 ): Promise<void> {

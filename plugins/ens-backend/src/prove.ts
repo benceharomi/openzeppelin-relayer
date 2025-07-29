@@ -1,24 +1,28 @@
-import { ProverConfig } from "./config";
+import { ProverConfig } from "./state";
+import {
+  generateEmailCircuitInput,
+  generateAccountCode,
+} from "@zk-email/relayer-utils";
 
-interface Proof {
+export type Proof = {
   pi_a: string[];
   pi_b: string[][];
   pi_c: string[];
   protocol: string;
-}
+};
 
-interface ProveRequest {
+type ProveRequest = {
   blueprintId: string;
   proofId: string;
   zkeyDownloadUrl: string;
   circuitCppDownloadUrl: string;
   input: any;
-}
+};
 
-interface ProofResponse {
+type ProofResponse = {
   proof: Proof;
   publicOutputs: string[];
-}
+};
 
 export async function generateProof(
   body: string,
@@ -26,17 +30,12 @@ export async function generateProof(
 ): Promise<ProofResponse> {
   console.info("Generating proof");
 
-  // TODO relayer-utils library
-  const mockInput = {
-    emailBody: body,
-  };
-
   const proveRequest: ProveRequest = {
     blueprintId: proverConfig.blueprintId,
     proofId: "",
     zkeyDownloadUrl: proverConfig.zkeyDownloadUrl,
     circuitCppDownloadUrl: proverConfig.circuitCppDownloadUrl,
-    input: mockInput,
+    input: generateInputs(body),
   };
 
   const response = await fetch(proverConfig.url, {
@@ -53,4 +52,27 @@ export async function generateProof(
   }
 
   return await response.json();
+}
+
+async function generateInputs(body: string): Promise<any> {
+  console.info("Generating inputs");
+
+  const accountCode = await generateAccountCode();
+  const emailCircuitInput = await generateEmailCircuitInput(body, accountCode, {
+    ignoreBodyHashCheck: false,
+    maxBodyLength: 1024,
+    maxHeaderLength: 1024,
+    shaPrecomputedSelector: '(<div id=3D"[^"]*zkemail[^"]*"[^>]*>)',
+  }).catch((error) => {
+    console.error("Failed to generate email circuit inputs", error);
+    throw error;
+  });
+
+  const json = JSON.parse(emailCircuitInput);
+  if (json.error) {
+    console.error("Failed to convert inputs to json", json.error);
+    throw new Error(json.error);
+  }
+
+  return json;
 }

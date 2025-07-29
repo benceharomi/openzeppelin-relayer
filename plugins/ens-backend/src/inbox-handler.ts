@@ -1,10 +1,11 @@
 import { ethers } from "ethers";
-import { fromEmailBody } from "./command-request";
 import { generateProof } from "./prove";
 import { loadAndRenderTransactionSuccessTemplate } from "./template";
+import { sendRequest } from "./smtp";
+import { StateConfig } from "./state";
 import { PluginAPI } from "../../lib/plugin";
-import { sendSmtpRequest } from "./smtp";
-import { StateConfig } from "./config";
+import { fromEmailBody } from "./command-request";
+import { exportProofBytes, exportPublicInputs } from "./proof";
 
 const PROOF_ENCODER_ABI = [
   {
@@ -52,14 +53,10 @@ export type InboxHandlerRequest = {
 
 export async function inboxHandler(
   api: PluginAPI,
-  config: StateConfig,
+  state: StateConfig,
   request: InboxHandlerRequest
 ): Promise<string> {
-  if (!request.emailBody) {
-    throw new Error("Email body parameter is required");
-  }
-
-  console.info("Received inbox request");
+  console.info("Received inbox request", request);
 
   const commandRequest = await fromEmailBody(request.emailBody).catch(
     (error) => {
@@ -68,26 +65,25 @@ export async function inboxHandler(
     }
   );
 
-  const proof = await generateProof(request.emailBody, config.prover).catch(
+  const proof = await generateProof(request.emailBody, state.prover).catch(
     (error) => {
       console.error("Failed to generate proof:", error);
       throw new Error("Failed to generate proof");
     }
   );
 
-  const chain = config.rpc[0];
+  const chain = state.rpc[0];
   if (!chain) {
     throw new Error("No rpc found");
   }
 
   const provider = new ethers.JsonRpcProvider(chain.url);
 
-  // TODO
-  const proofBytes = proof.proof;
-  const publicInputs = proof.publicOutputs;
+  const proofBytes = exportProofBytes(proof.proof);
+  const publicInputs = exportPublicInputs(proof.publicOutputs);
 
-  console.info("Proof bytes:", proofBytes);
-  console.info("Public inputs:", publicInputs);
+  console.info("proof bytes", proofBytes);
+  console.info("public inputs", publicInputs);
 
   const verifier = new ethers.Contract(
     commandRequest.verifier,
@@ -108,15 +104,15 @@ export async function inboxHandler(
 
   console.info("Transaction submitted with hash:", txHash);
 
-  await sendSmtpRequest(
+  await sendRequest(
     {
       to: commandRequest.email,
       subject: "Your Request has been Completed",
       bodyPlain: `Your request has been successfully processed. Transaction hash: ${txHash}`,
       bodyHtml: loadAndRenderTransactionSuccessTemplate(txHash),
     },
-    config.smtpUrl
+    state.smtpUrl
   );
 
-  return `Transaction completed successfully. Hash: ${txHash}`;
+  return "success";
 }

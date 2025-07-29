@@ -1,7 +1,7 @@
 import { loadAndRenderCommandConfirmationTemplate } from "./template";
+import { sendRequest } from "./smtp";
+import { StateConfig } from "./state";
 import { PluginAPI } from "../../lib/plugin";
-import { sendSmtpRequest } from "./smtp";
-import { StateConfig } from "./config";
 
 export type CommandHandlerRequest = {
   email: string;
@@ -11,32 +11,22 @@ export type CommandHandlerRequest = {
 
 export async function commandHandler(
   api: PluginAPI,
-  config: StateConfig,
+  state: StateConfig,
   request: CommandHandlerRequest
 ): Promise<string> {
-  if (!request.email) {
-    throw new Error("Email parameter is required");
-  }
+  const htmlBody = loadAndRenderCommandConfirmationTemplate(request);
 
-  if (!request.command) {
-    throw new Error("Command parameter is required");
-  }
+  console.info("Command request:", request);
 
-  if (!request.verifier) {
-    throw new Error("Verifier parameter is required");
-  }
-
-  console.info("Received command request");
-
-  await sendSmtpRequest(
+  await sendRequest(
     {
       to: request.email,
       subject: `[Reply Needed] ${request.command}`,
       bodyPlain: request.command,
-      bodyHtml: loadAndRenderCommandConfirmationTemplate(request),
+      bodyHtml: htmlBody,
     },
-    config.smtpUrl
+    state.smtpUrl
   );
 
-  return "Email sent successfully";
+  return "success";
 }
