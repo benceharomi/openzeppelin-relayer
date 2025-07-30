@@ -1,9 +1,11 @@
 import type { SmtpDeps, SendRequest } from "./types";
 
 export const createSendRequest =
-  ({ config }: SmtpDeps): SendRequest =>
+  ({ configService }: SmtpDeps): SendRequest =>
   async (request) => {
-    const response = await fetch(config.smtpUrl, {
+    const smtpConfig = configService.getSmtpConfig();
+
+    const response = await fetch(smtpConfig.smtpUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

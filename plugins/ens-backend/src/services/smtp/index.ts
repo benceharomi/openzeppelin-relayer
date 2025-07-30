@@ -1,2 +1,7 @@
 export { createSmtpService } from "./service.factory";
-export type { SmtpConfig, SmtpService, SmtpRequest } from "./types";
+export type {
+  SmtpConfig,
+  SmtpConfigService,
+  SmtpService,
+  SmtpRequest,
+} from "./types";

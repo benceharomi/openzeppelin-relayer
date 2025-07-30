@@ -43,10 +43,12 @@ const PROOF_ENCODER_ABI = [
 ];
 
 export const createVerifyProof =
-  ({ config, pluginApi }: VerifierDeps): VerifyProof =>
+  ({ configService, pluginApi }: VerifierDeps): VerifyProof =>
   async (verifierAddress, proof, publicOutputs) => {
+    const verifierConfig = configService.getVerifierConfig();
+
     // step 0: create a provider to interact with the verifier contract
-    const provider = new ethers.JsonRpcProvider(config.rpcUrl);
+    const provider = new ethers.JsonRpcProvider(verifierConfig.rpcUrl);
     const verifier = new ethers.Contract(
       verifierAddress,
       PROOF_ENCODER_ABI,

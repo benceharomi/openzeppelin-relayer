@@ -5,23 +5,25 @@ import {
 import { GenerateProof, ProverDeps, ProveRequest } from "./types";
 
 export const createGenerateProof =
-  ({ config }: ProverDeps): GenerateProof =>
+  ({ configService }: ProverDeps): GenerateProof =>
   async (body) => {
     console.info("Generating proof");
 
+    const proverConfig = configService.getProverConfig();
+
     const proveRequest: ProveRequest = {
-      blueprintId: config.blueprintId,
+      blueprintId: proverConfig.blueprintId,
       proofId: "",
-      zkeyDownloadUrl: config.zkeyDownloadUrl,
-      circuitCppDownloadUrl: config.circuitCppDownloadUrl,
+      zkeyDownloadUrl: proverConfig.zkeyDownloadUrl,
+      circuitCppDownloadUrl: proverConfig.circuitCppDownloadUrl,
       input: generateInputs(body),
     };
 
-    const response = await fetch(config.url, {
+    const response = await fetch(proverConfig.url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": config.apiKey,
+        "x-api-key": proverConfig.apiKey,
       },
       body: JSON.stringify(proveRequest),
     });

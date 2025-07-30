@@ -1,11 +1,17 @@
-import { ProverConfig } from "../prover";
-import { SmtpConfig } from "../smtp";
-import { VerifierConfig } from "../verifier";
-import { TemplateConfig } from "../template";
+import type { ProverConfig, ProverConfigService } from "../prover";
+import type { SmtpConfig, SmtpConfigService } from "../smtp";
+import type { TemplateConfig, TemplateConfigService } from "../template";
+import type { VerifierConfig, VerifierConfigService } from "../verifier";
+
+type Config = {
+  smtp: SmtpConfig;
+  prover: ProverConfig;
+  verifier: VerifierConfig;
+  template: TemplateConfig;
+};
 
 export type ConfigDeps = {
-  libDirPath: string;
-  configFileName: string;
+  config: Config;
 };
 
 type ChainConfig = {
@@ -21,15 +27,7 @@ export type ConfigFile = {
   rpc: ChainConfig[];
 };
 
-type Config = {
-  smtp: SmtpConfig;
-  prover: ProverConfig;
-  verifier: VerifierConfig;
-  template: TemplateConfig;
-};
-
-export type Load = () => Config;
-
-export type ConfigService = {
-  load: Load;
-};
+export type ConfigService = ProverConfigService &
+  SmtpConfigService &
+  TemplateConfigService &
+  VerifierConfigService;

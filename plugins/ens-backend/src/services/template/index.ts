@@ -1,2 +1,6 @@
 export { createTemplateService } from "./service.factory";
-export type { TemplateConfig, TemplateService } from "./types";
+export type {
+  TemplateConfig,
+  TemplateConfigService,
+  TemplateService,
+} from "./types";

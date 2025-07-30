@@ -1,2 +1,6 @@
 export { createVerifierService } from "./service.factory";
-export type { VerifierConfig, VerifierService } from "./types";
+export type {
+  VerifierConfig,
+  VerifierConfigService,
+  VerifierService,
+} from "./types";

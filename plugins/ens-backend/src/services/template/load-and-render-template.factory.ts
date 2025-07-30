@@ -3,11 +3,16 @@ import { LoadAndRenderTemplate, TemplateArg, TemplateDeps } from "./types";
 import { existsSync } from "fs";
 import { join } from "path";
 
-export const createLoadAndRenderTemplate = (
-  deps: TemplateDeps
-): LoadAndRenderTemplate => {
+export const createLoadAndRenderTemplate = ({
+  configService,
+}: TemplateDeps): LoadAndRenderTemplate => {
+  const templateConfig = configService.getTemplateConfig();
+
   return async (fileName, args) => {
-    const template = await loadTemplate(deps.config.templateDirPath, fileName);
+    const template = await loadTemplate(
+      templateConfig.templateDirPath,
+      fileName
+    );
     return populateTemplate(template, args);
   };
 };

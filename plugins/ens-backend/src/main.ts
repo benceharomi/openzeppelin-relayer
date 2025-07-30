@@ -1,14 +1,22 @@
+// Standard library imports
 import { join } from "path";
-import { createInboxHandler } from "./handlers/inbox/handler.factory";
-import { PluginAPI, runPlugin } from "../../lib/plugin";
-import { createSmtpService } from "./services/smtp";
-import { createProverService } from "./services/prover/service.factory";
-import { createVerifierService } from "./services/verifier/service.factory";
+
+// Plugin framework imports
+import { runPlugin } from "../../lib/plugin";
+import type { PluginAPI } from "../../lib/plugin";
+
+// Local imports - handlers
 import { createCommandHandler } from "./handlers/command";
-import { CommandHandlerRequest } from "./handlers/command";
-import { InboxHandlerRequest } from "./handlers/inbox";
+import type { CommandHandlerRequest } from "./handlers/command";
+import { createInboxHandler } from "./handlers/inbox";
+import type { InboxHandlerRequest } from "./handlers/inbox";
+
+// Local imports - services
+import { createConfigService, loadConfig } from "./services/config";
+import { createProverService } from "./services/prover";
+import { createSmtpService } from "./services/smtp";
 import { createTemplateService } from "./services/template";
-import { createConfigService } from "./services/config";
+import { createVerifierService } from "./services/verifier";
 
 type PluginRequest =
   | {
@@ -28,25 +36,21 @@ async function main(
     throw new Error("Action and request are required");
   }
 
-  const configService = createConfigService({
-    libDirPath: join(__dirname, ".."),
-    configFileName: "config.json",
-  });
-
-  const config = configService.load();
+  const config = await loadConfig(join(__dirname, ".."), "config.json");
+  const configService = createConfigService({ config });
 
   const smtpService = createSmtpService({
-    config: config.smtp,
+    configService,
   });
   const proverService = createProverService({
-    config: config.prover,
+    configService,
   });
   const verifierService = createVerifierService({
-    config: config.verifier,
+    configService,
     pluginApi: pluginApi,
   });
   const templateService = createTemplateService({
-    config: config.template,
+    configService,
   });
 
   switch (action) {

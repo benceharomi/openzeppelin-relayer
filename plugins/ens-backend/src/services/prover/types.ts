@@ -6,8 +6,12 @@ export type ProverConfig = {
   zkeyDownloadUrl: string;
 };
 
+export type ProverConfigService = {
+  getProverConfig: () => ProverConfig;
+};
+
 export type ProverDeps = {
-  config: ProverConfig;
+  configService: ProverConfigService;
 };
 
 export type Proof = {

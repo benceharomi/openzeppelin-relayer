@@ -5,8 +5,12 @@ export type VerifierConfig = {
   rpcUrl: string;
 };
 
+export type VerifierConfigService = {
+  getVerifierConfig: () => VerifierConfig;
+};
+
 export type VerifierDeps = {
-  config: VerifierConfig;
+  configService: VerifierConfigService;
   pluginApi: PluginAPI;
 };
 

@@ -2,8 +2,12 @@ export type SmtpConfig = {
   smtpUrl: string;
 };
 
+export type SmtpConfigService = {
+  getSmtpConfig: () => SmtpConfig;
+};
+
 export type SmtpDeps = {
-  config: SmtpConfig;
+  configService: SmtpConfigService;
 };
 
 export type SmtpRequest = {
