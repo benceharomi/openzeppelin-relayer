@@ -1,11 +1,33 @@
+import { access, readFile } from "fs/promises";
 import { join } from "path";
-import { ConfigFile } from "./types";
-import { readFile, access } from "fs/promises";
+import Joi from "joi";
+import type { Config } from "./types";
+
+const chainConfigSchema = Joi.object({
+  name: Joi.string().required(),
+  chainId: Joi.number().required(),
+  url: Joi.string().uri().required(),
+  privateKey: Joi.string().required(),
+});
+
+const proverConfigSchema = Joi.object({
+  url: Joi.string().required(),
+  apiKey: Joi.string().required(),
+  blueprintId: Joi.string().required(),
+  circuitCppDownloadUrl: Joi.string().uri().required(),
+  zkeyDownloadUrl: Joi.string().uri().required(),
+});
+
+const configFileSchema = Joi.object({
+  smtpUrl: Joi.string().uri().required(),
+  prover: proverConfigSchema.required(),
+  rpc: Joi.array().items(chainConfigSchema).min(1).required(),
+});
 
 export const loadConfig = async (
   libDirPath: string,
   configFileName: string
-) => {
+): Promise<Config> => {
   const configPath = join(libDirPath, configFileName);
 
   try {
@@ -16,53 +38,40 @@ export const loadConfig = async (
 
   try {
     const content = await readFile(configPath, "utf-8");
-    const configFile: ConfigFile = JSON.parse(content);
+    const parsed = JSON.parse(content);
 
-    // Check that all required fields are present
-    if (
-      !configFile ||
-      !configFile.smtpUrl ||
-      !configFile.prover ||
-      !configFile.rpc
-    ) {
-      throw new Error("Missing required fields: smtpUrl, prover, or rpc");
-    }
+    // Validate config using Joi schema
+    const { error, value } = configFileSchema.validate(parsed, {
+      abortEarly: false, // report all errors
+      allowUnknown: true, // allow other keys but they won't be validated
+      stripUnknown: true, // strip keys not in schema
+    });
 
-    if (
-      !configFile.prover.url ||
-      !configFile.prover.apiKey ||
-      !configFile.prover.blueprintId ||
-      !configFile.prover.circuitCppDownloadUrl ||
-      !configFile.prover.zkeyDownloadUrl
-    ) {
-      throw new Error("Missing required prover fields");
-    }
-
-    if (!Array.isArray(configFile.rpc) || configFile.rpc.length === 0) {
-      throw new Error("rpc must be a non-empty array");
-    }
-
-    for (const chain of configFile.rpc) {
-      if (!chain.name || !chain.chainId || !chain.url || !chain.privateKey) {
-        throw new Error(
-          "Each rpc chain must have name, chainId, url, and privateKey"
-        );
-      }
+    if (error) {
+      // Format Joi error messages
+      const message = error.details
+        .map((d) => `${d.message} (path: ${d.path.join(".")})`)
+        .join("; ");
+      throw new Error(`Invalid configuration: ${message}`);
     }
 
     return {
       smtp: {
-        smtpUrl: configFile.smtpUrl,
+        smtpUrl: value.smtpUrl,
       },
-      prover: configFile.prover,
+      prover: value.prover,
       verifier: {
-        rpcUrl: configFile.rpc[0].url,
+        rpcUrl: value.rpc[0].url, // use the first RPC url for verifier
       },
       template: {
         templateDirPath: join(libDirPath, "templates"),
       },
     };
   } catch (error) {
-    throw new Error(`Failed to load configuration: ${error}`);
+    throw new Error(
+      `Failed to load configuration: ${
+        error instanceof Error ? error.message : error
+      }`
+    );
   }
 };

@@ -3,7 +3,7 @@ import type { SmtpConfig, SmtpConfigService } from "../smtp";
 import type { TemplateConfig, TemplateConfigService } from "../template";
 import type { VerifierConfig, VerifierConfigService } from "../verifier";
 
-type Config = {
+export type Config = {
   smtp: SmtpConfig;
   prover: ProverConfig;
   verifier: VerifierConfig;
@@ -12,19 +12,6 @@ type Config = {
 
 export type ConfigDeps = {
   config: Config;
-};
-
-type ChainConfig = {
-  name: string;
-  chainId: number;
-  url: string;
-  privateKey: string;
-};
-
-export type ConfigFile = {
-  smtpUrl: string;
-  prover: ProverConfig;
-  rpc: ChainConfig[];
 };
 
 export type ConfigService = ProverConfigService &
