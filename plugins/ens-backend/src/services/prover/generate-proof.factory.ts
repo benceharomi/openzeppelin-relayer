@@ -35,7 +35,7 @@ export const createGenerateProof =
     return await response.json();
   };
 
-async function generateInputs(body: string): Promise<any> {
+export const generateInputs = async (body: string): Promise<any> => {
   console.info("Generating inputs");
 
   const accountCode = await generateAccountCode();
@@ -56,4 +56,4 @@ async function generateInputs(body: string): Promise<any> {
   }
 
   return json;
-}
+};
