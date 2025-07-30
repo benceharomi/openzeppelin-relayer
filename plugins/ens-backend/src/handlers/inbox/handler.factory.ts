@@ -12,18 +12,20 @@ export const createInboxHandler =
   async (request) => {
     console.info("Received inbox request", request);
 
-    const commandRequest = await fromEmailBody(request.emailBody);
+    const { email, verifier } = await fromEmailBody(request.emailBody);
 
-    const proofResponse = await proverService.generateProof(request.emailBody);
+    const { proof, publicOutputs } = await proverService.generateProof(
+      request.emailBody
+    );
 
     const { txHash } = await verifierService.verifyProof(
-      commandRequest.verifier,
-      proofResponse.proof,
-      proofResponse.publicOutputs
+      verifier,
+      proof,
+      publicOutputs
     );
 
     await smtpService.sendRequest({
-      to: commandRequest.email,
+      to: email,
       subject: "Your Request has been Completed",
       bodyPlain: `Your request has been successfully processed. Transaction hash: ${txHash}`,
       bodyHtml: await templateService.loadAndRenderTemplate(
@@ -37,16 +39,14 @@ export const createInboxHandler =
     return "success";
   };
 
-export type CommandRequest = {
-  email: string;
-  command: string;
-  verifier: string;
-};
-
 /// Extracts the command request from the email body
 export const fromEmailBody = async (
   emailBody: string
-): Promise<CommandRequest> => {
+): Promise<{
+  email: string;
+  command: string;
+  verifier: string;
+}> => {
   const cleanBody = decode(emailBody);
   console.info("Clean body:", cleanBody);
 
