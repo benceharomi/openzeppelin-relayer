@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+
 import nock from "nock";
 import {
   createGenerateProof,
@@ -45,11 +46,11 @@ describe("generate-proof.factory", () => {
     async function runGenerateInputsTest(fixtureDir: string) {
       const emailPath = path.join(
         __dirname,
-        `../../fixtures/${fixtureDir}/email.eml`
+        `../../../fixtures/${fixtureDir}/email.eml`
       );
       const inputsPath = path.join(
         __dirname,
-        `../../fixtures/${fixtureDir}/inputs.json`
+        `../../../fixtures/${fixtureDir}/inputs.json`
       );
 
       const email = fs.readFileSync(emailPath, "utf-8");
@@ -75,11 +76,11 @@ describe("generate-proof.factory", () => {
       const server = "http://example.com";
       const emailPath = path.join(
         __dirname,
-        `../../fixtures/${fixtureDir}/email.eml`
+        `../../../fixtures/${fixtureDir}/email.eml`
       );
       const proverResponsePath = path.join(
         __dirname,
-        `../../fixtures/${fixtureDir}/prover_response.json`
+        `../../../fixtures/${fixtureDir}/prover_response.json`
       );
 
       const email = fs.readFileSync(emailPath, "utf-8");
