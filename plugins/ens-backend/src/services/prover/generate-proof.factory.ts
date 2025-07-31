@@ -32,7 +32,7 @@ export const createGenerateProof =
     return await response.json();
   };
 
-async function generateInputs(body: string): Promise<any> {
+export async function generateInputs(body: string): Promise<any> {
   console.info("Generating inputs");
 
   const emailCircuitInput = await generateEmailCircuitInput(body, "0x0", {
