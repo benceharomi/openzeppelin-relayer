@@ -1,7 +1,4 @@
-import {
-  generateAccountCode,
-  generateEmailCircuitInput,
-} from "@zk-email/relayer-utils";
+import { generateEmailCircuitInput } from "@zk-email/relayer-utils";
 import { GenerateProof, ProverDeps, ProveRequest } from "./types";
 
 export const createGenerateProof =
@@ -38,8 +35,7 @@ export const createGenerateProof =
 export const generateInputs = async (body: string): Promise<any> => {
   console.info("Generating inputs");
 
-  const accountCode = await generateAccountCode();
-  const emailCircuitInput = await generateEmailCircuitInput(body, accountCode, {
+  const emailCircuitInput = await generateEmailCircuitInput(body, "0x0", {
     ignoreBodyHashCheck: false,
     maxBodyLength: 1024,
     maxHeaderLength: 1024,
