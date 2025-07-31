@@ -11,7 +11,7 @@ export type InboxHandlerDeps = {
 };
 
 export type InboxHandlerRequest = {
-  emailBody: string;
+  rawEmail: string;
 };
 
 export type InboxHandler = (request: InboxHandlerRequest) => Promise<string>;

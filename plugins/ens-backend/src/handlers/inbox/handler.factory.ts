@@ -12,10 +12,10 @@ export const createInboxHandler =
   async (request) => {
     console.info("Received inbox request", request);
 
-    const { email, verifier } = await fromEmailBody(request.emailBody);
+    const { email, verifier } = await fromEmailBody(request.rawEmail);
 
     const { proof, publicOutputs } = await proverService.generateProof(
-      request.emailBody
+      request.rawEmail
     );
 
     const { txHash } = await verifierService.verifyProof(
