@@ -2,8 +2,8 @@ import '@jest/globals';
 import net from 'node:net';
 import { PluginAPI, runPlugin } from '../../lib/plugin';
 import { LogInterceptor } from '../../lib/logger';
-import { NetworkTransactionRequest } from '@openzeppelin/relayer-sdk/dist/src/models/network-transaction-request';
-import { Speed } from '@openzeppelin/relayer-sdk/dist/src/models/speed';
+import { NetworkTransactionRequest } from '@openzeppelin/relayer-sdk/dist/models/network-transaction-request';
+import { Speed } from '@openzeppelin/relayer-sdk/dist/models/speed';
 
 jest.mock('../../lib/logger');
 const MockedLogInterceptor = LogInterceptor as jest.MockedClass<typeof LogInterceptor>;
