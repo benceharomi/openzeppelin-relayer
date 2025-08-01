@@ -2,6 +2,6 @@ export { createProverService } from "./service.factory";
 export type {
   ProverConfig,
   ProverConfigService,
+  ProverResponse,
   ProverService,
-  Proof,
 } from "./types";

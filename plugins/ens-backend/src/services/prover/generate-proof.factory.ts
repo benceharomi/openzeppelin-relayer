@@ -3,7 +3,7 @@ import { GenerateProof, ProverDeps, ProveRequest } from "./types";
 
 export const createGenerateProof =
   ({ configService }: ProverDeps): GenerateProof =>
-  async (body) => {
+  async (rawEmail) => {
     console.info("Generating proof");
 
     const proverConfig = configService.getProverConfig();
@@ -13,7 +13,7 @@ export const createGenerateProof =
       proofId: "",
       zkeyDownloadUrl: proverConfig.zkeyDownloadUrl,
       circuitCppDownloadUrl: proverConfig.circuitCppDownloadUrl,
-      input: await generateInputs(body),
+      input: await generateInputs(rawEmail),
     };
 
     const response = await fetch(proverConfig.url, {
@@ -32,13 +32,13 @@ export const createGenerateProof =
     return await response.json();
   };
 
-export async function generateInputs(body: string): Promise<any> {
+export async function generateInputs(rawEmail: string): Promise<any> {
   console.info("Generating inputs");
 
   await initWasm();
 
   const emailCircuitInput = await generateEmailCircuitInput(
-    body,
+    rawEmail,
     "0x0000000000000000000000000000000000000000000000000000000000000000",
     {
       ignoreBodyHashCheck: false,

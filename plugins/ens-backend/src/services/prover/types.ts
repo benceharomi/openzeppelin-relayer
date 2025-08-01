@@ -14,13 +14,6 @@ export type ProverDeps = {
   configService: ProverConfigService;
 };
 
-export type Proof = {
-  pi_a: string[];
-  pi_b: string[][];
-  pi_c: string[];
-  protocol: string;
-};
-
 export type ProveRequest = {
   blueprintId: string;
   proofId: string;
@@ -29,12 +22,17 @@ export type ProveRequest = {
   input: any;
 };
 
-export type ProofResponse = {
-  proof: Proof;
+export type ProverResponse = {
+  proof: {
+    pi_a: string[];
+    pi_b: string[][];
+    pi_c: string[];
+    protocol: string;
+  };
   publicOutputs: string[];
 };
 
-export type GenerateProof = (body: string) => Promise<ProofResponse>;
+export type GenerateProof = (rawEmail: string) => Promise<ProverResponse>;
 
 export type ProverService = {
   generateProof: GenerateProof;

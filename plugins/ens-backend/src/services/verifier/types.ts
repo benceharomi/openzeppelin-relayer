@@ -1,8 +1,9 @@
 import { PluginAPI } from "../../../../lib/plugin";
-import { Proof } from "../prover";
+import { ProverResponse } from "../prover";
 
 export type VerifierConfig = {
   rpcUrl: string;
+  privateKey: string;
 };
 
 export type VerifierConfigService = {
@@ -14,11 +15,10 @@ export type VerifierDeps = {
   pluginApi: PluginAPI;
 };
 
-export type VerifyProof = (
-  verifierAddress: string,
-  proof: Proof,
-  publicOutputs: string[]
-) => Promise<{ txHash: string }>;
+export type VerifyProof = (inputs: {
+  verifierAddress: string;
+  proverResponse: ProverResponse;
+}) => Promise<{ txHash: string }>;
 
 export type VerifierService = {
   verifyProof: VerifyProof;

@@ -12,17 +12,16 @@ export const createInboxHandler =
   async (request) => {
     console.info("Received inbox request", request);
 
-    const { email, verifier } = await fromEmailBody(request.rawEmail);
-
-    const { proof, publicOutputs } = await proverService.generateProof(
+    const { email, verifier } = await commandRequestFromRawEmail(
       request.rawEmail
     );
 
-    const { txHash } = await verifierService.verifyProof(
-      verifier,
-      proof,
-      publicOutputs
-    );
+    const proverResponse = await proverService.generateProof(request.rawEmail);
+
+    const { txHash } = await verifierService.verifyProof({
+      verifierAddress: verifier,
+      proverResponse,
+    });
 
     await smtpService.sendRequest({
       to: email,
@@ -39,23 +38,23 @@ export const createInboxHandler =
     return "success";
   };
 
-/// Extracts the command request from the email body
-export const fromEmailBody = async (
-  emailBody: string
-): Promise<{
+type CommandRequest = {
   email: string;
   command: string;
   verifier: string;
-}> => {
-  const cleanBody = decode(emailBody);
-  console.info("Clean body:", cleanBody);
+};
+
+export const commandRequestFromRawEmail = async (
+  rawEmail: string
+): Promise<CommandRequest> => {
+  const cleanedEmail = decode(rawEmail);
 
   // Extract relayer data from the hidden div using regex
   const re = new RegExp(
     '<div[^>]*id="[^"]*relayer-data[^"]*"[^>]*>(.*?)</div>'
   );
 
-  const match = cleanBody.match(re);
+  const match = cleanedEmail.match(re);
   if (!match) {
     throw new Error("Relayer data extraction failed");
   }

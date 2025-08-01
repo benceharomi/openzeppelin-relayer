@@ -99,8 +99,8 @@ describe("generate-proof.factory", () => {
         `../../../fixtures/${fixtureDir}/prover_response.json`
       );
 
-      const email = fs.readFileSync(emailPath, "utf-8");
-      const inputs = await generateInputs(email);
+      const rawEmail = fs.readFileSync(emailPath, "utf-8");
+      const inputs = await generateInputs(rawEmail);
 
       const expectedRequest = {
         blueprintId: "dummy-blueprint",
@@ -123,7 +123,7 @@ describe("generate-proof.factory", () => {
         })
       );
 
-      const proof = await generateProof(email);
+      const proof = await generateProof(rawEmail);
 
       // Verify the response structure like the Rust version
       expect(proof.publicOutputs).toBeDefined();

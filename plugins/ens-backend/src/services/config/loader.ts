@@ -61,7 +61,8 @@ export const loadConfig = async (
       },
       prover: value.prover,
       verifier: {
-        rpcUrl: value.rpc[0].url, // use the first RPC url for verifier
+        rpcUrl: value.rpc[0].url,
+        privateKey: value.rpc[0].privateKey,
       },
       template: {
         templateDirPath: join(libDirPath, "templates"),
