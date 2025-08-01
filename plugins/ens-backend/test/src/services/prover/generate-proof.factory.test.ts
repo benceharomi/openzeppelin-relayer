@@ -1,7 +1,8 @@
 import fs from "fs";
 import path from "path";
+import { http, HttpResponse } from "msw";
+import { setupServer } from "msw/node";
 
-import nock from "nock";
 import {
   createGenerateProof,
   generateInputs,
@@ -30,7 +31,6 @@ describe("generate-proof.factory", () => {
   });
 
   afterEach(() => {
-    nock.cleanAll();
     jest.clearAllMocks();
   });
 
@@ -64,6 +64,23 @@ describe("generate-proof.factory", () => {
   });
 
   describe("generateProof", () => {
+    let server: ReturnType<typeof setupServer>;
+
+    beforeAll(() => {
+      server = setupServer();
+      server.listen({
+        onUnhandledRequest: "bypass", // Suppress warnings for unhandled requests
+      });
+    });
+
+    afterAll(() => {
+      server.close();
+    });
+
+    beforeEach(() => {
+      server.resetHandlers();
+    });
+
     it("should generate proof for case1_claim", async () => {
       await runGenerateProofTest("case1_claim");
     });
@@ -73,7 +90,6 @@ describe("generate-proof.factory", () => {
     });
 
     async function runGenerateProofTest(fixtureDir: string) {
-      const server = "http://example.com";
       const emailPath = path.join(
         __dirname,
         `../../../fixtures/${fixtureDir}/email.eml`
@@ -94,20 +110,20 @@ describe("generate-proof.factory", () => {
         input: inputs,
       };
 
-      const proverResponse = fs.readFileSync(proverResponsePath, "utf-8");
-      const expectedResponse = JSON.parse(proverResponse);
+      const proverResponseStr = fs.readFileSync(proverResponsePath, "utf-8");
+      const proverResponse = JSON.parse(proverResponseStr);
 
-      // Mock the prover API response
-      const mockScope = nock(server)
-        .post("/api/prove", JSON.stringify(expectedRequest))
-        .matchHeader("x-api-key", "test-key")
-        .matchHeader("Content-Type", "application/json")
-        .reply(200, expectedResponse);
+      server.use(
+        http.post("http://example.com/api/prove", async ({ request }) => {
+          expect(request.headers.get("x-api-key")).toBe("test-key");
+          expect(request.headers.get("content-type")).toBe("application/json");
+          expect(await request.json()).toEqual(expectedRequest);
+
+          return HttpResponse.json(proverResponse);
+        })
+      );
 
       const proof = await generateProof(email);
-
-      // Verify the mock was called correctly
-      expect(mockScope.isDone()).toBe(true);
 
       // Verify the response structure like the Rust version
       expect(proof.publicOutputs).toBeDefined();

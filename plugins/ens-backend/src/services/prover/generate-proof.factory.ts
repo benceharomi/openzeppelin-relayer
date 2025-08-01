@@ -13,7 +13,7 @@ export const createGenerateProof =
       proofId: "",
       zkeyDownloadUrl: proverConfig.zkeyDownloadUrl,
       circuitCppDownloadUrl: proverConfig.circuitCppDownloadUrl,
-      input: generateInputs(body),
+      input: await generateInputs(body),
     };
 
     const response = await fetch(proverConfig.url, {
