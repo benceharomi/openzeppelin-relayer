@@ -2,8 +2,8 @@ import { AbiCoder, ethers } from "ethers";
 import { VerifierDeps, VerifyProof } from "./types";
 
 const VERIFIER_ABI = [
-  "function encode(uint256[] publicSignals, bytes proof) view returns (bytes)",
-  "function entrypoint(bytes data) nonpayable",
+  "function encode(uint256[] calldata publicSignals, bytes calldata proof) external view returns (bytes memory)",
+  "function entrypoint(bytes memory data) external",
 ];
 
 export const createVerifyProof =
