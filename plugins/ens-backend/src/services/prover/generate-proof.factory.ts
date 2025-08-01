@@ -1,4 +1,4 @@
-import { generateEmailCircuitInput } from "@zk-email/relayer-utils";
+import { generateEmailCircuitInput, init } from "@zk-email/relayer-utils";
 import { GenerateProof, ProverDeps, ProveRequest } from "./types";
 
 export const createGenerateProof =
@@ -35,12 +35,18 @@ export const createGenerateProof =
 export async function generateInputs(body: string): Promise<any> {
   console.info("Generating inputs");
 
-  const emailCircuitInput = await generateEmailCircuitInput(body, "0x0", {
-    ignoreBodyHashCheck: false,
-    maxBodyLength: 1024,
-    maxHeaderLength: 1024,
-    shaPrecomputedSelector: '(<div id=3D"[^"]*zkemail[^"]*"[^>]*>)',
-  }).catch((error) => {
+  await initWasm();
+
+  const emailCircuitInput = await generateEmailCircuitInput(
+    body,
+    "0x0000000000000000000000000000000000000000000000000000000000000000",
+    {
+      ignoreBodyHashCheck: false,
+      maxBodyLength: 1024,
+      maxHeaderLength: 1024,
+      shaPrecomputeSelector: '(<div id=3D"[^"]*zkemail[^"]*"[^>]*>)',
+    }
+  ).catch((error) => {
     console.error("Failed to generate email circuit inputs", error);
     throw error;
   });
@@ -53,3 +59,15 @@ export async function generateInputs(body: string): Promise<any> {
 
   return json;
 }
+
+let wasmPromise: Promise<void>;
+
+// Hack so we would only init wasm once for all tests to pass
+const initWasm = () => {
+  if (wasmPromise) {
+    return wasmPromise;
+  }
+
+  wasmPromise = init();
+  return wasmPromise;
+};
