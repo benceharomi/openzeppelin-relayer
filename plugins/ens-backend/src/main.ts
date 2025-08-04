@@ -42,7 +42,8 @@ async function main(
 
   const loggerService = createLoggerService({ configService });
 
-  loggerService.info("ENS Backend plugin starting", { action });
+  const logger = loggerService.createChild("main");
+  logger.info("ENS Backend plugin starting", { action });
 
   const smtpService = createSmtpService({
     configService,
@@ -65,14 +66,14 @@ async function main(
   try {
     switch (action) {
       case "command":
-        loggerService.info("Processing command request");
+        logger.info("Processing command request");
         return await createCommandHandler({
           smtpService,
           templateService,
           loggerService,
         })(request);
       case "inbox":
-        loggerService.info("Processing inbox request");
+        logger.info("Processing inbox request");
         return await createInboxHandler({
           smtpService,
           proverService,
@@ -84,7 +85,7 @@ async function main(
         throw new Error(`Unknown action: ${action}`);
     }
   } catch (error) {
-    loggerService.error("Plugin execution failed", error as Error);
+    logger.error("Plugin execution failed", error as Error);
     throw error;
   }
 }

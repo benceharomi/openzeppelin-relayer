@@ -8,7 +8,8 @@ export const createCommandHandler =
     loggerService,
   }: CommandHandlerDeps): CommandHandler =>
   async (request) => {
-    loggerService.info("Command request", request);
+    const logger = loggerService.createChild("command-handler");
+    logger.info("Command request", request);
 
     const relayerData = JSON.stringify(request);
     const encodedRelayerData = escape(relayerData);

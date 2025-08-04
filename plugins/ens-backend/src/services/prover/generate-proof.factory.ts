@@ -5,7 +5,8 @@ import { LoggerService } from "../logger";
 export const createGenerateProof =
   ({ configService, loggerService }: ProverDeps): GenerateProof =>
   async (rawEmail) => {
-    loggerService.info("Generating proof");
+    const logger = loggerService.createChild("generate-proof");
+    logger.info("Generating proof");
 
     const proverConfig = configService.getProverConfig();
 
@@ -36,7 +37,8 @@ export const createGenerateProof =
 const generateInputs =
   ({ loggerService }: { loggerService: LoggerService }) =>
   async (rawEmail: string): Promise<any> => {
-    loggerService.info("Generating inputs");
+    const logger = loggerService.createChild("generate-inputs");
+    logger.info("Generating inputs");
 
     await initWasm();
 
@@ -50,16 +52,13 @@ const generateInputs =
         shaPrecomputeSelector: '(<div id=3D"[^"]*zkemail[^"]*"[^>]*>)',
       }
     ).catch((error) => {
-      loggerService.error("Failed to generate email circuit inputs", error);
+      logger.error("Failed to generate email circuit inputs", error);
       throw error;
     });
 
     const json = JSON.parse(emailCircuitInput);
     if (json.error) {
-      loggerService.error(
-        "Failed to convert inputs to json",
-        new Error(json.error)
-      );
+      logger.error("Failed to convert inputs to json", new Error(json.error));
       throw new Error(json.error);
     }
 

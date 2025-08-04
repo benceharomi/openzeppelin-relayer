@@ -1,10 +1,13 @@
 import pino from "pino";
-import type { LoggerDeps, LoggerService } from "./types";
+import type { LoggerDeps, LoggerService, LoggerConfig } from "./types";
 
-export function createLoggerService({
-  configService,
-}: LoggerDeps): LoggerService {
-  const loggerConfig = configService.getLoggerConfig();
+function createLoggerInstance(
+  loggerConfig: LoggerConfig,
+  context?: string
+): LoggerService {
+  const serviceContext = context
+    ? `${loggerConfig.service}:${context}`
+    : loggerConfig.service;
 
   // Create a logger that's compatible with the plugin framework
   // Use stderr for pino output to avoid interfering with LogInterceptor
@@ -12,7 +15,7 @@ export function createLoggerService({
     {
       level: loggerConfig.level,
       base: {
-        service: loggerConfig.service,
+        service: serviceContext,
       },
     },
     pino.destination({ dest: 2, sync: false })
@@ -35,7 +38,7 @@ export function createLoggerService({
         {
           level: loggerConfig.level,
           base: {
-            service: loggerConfig.service,
+            service: serviceContext,
             hostname: require("os").hostname(),
             pid: process.pid,
           },
@@ -98,7 +101,7 @@ export function createLoggerService({
     info(message: string, meta?: Record<string, any>): void {
       if (shouldLog("info")) {
         // Use console.info which is intercepted by LogInterceptor for structured output
-        console.info(`[${loggerConfig.service}] ${message}`, meta || {});
+        console.info(`[${serviceContext}] ${message}`, meta || {});
         // Also log to file
         logToFile("info", message, meta);
       }
@@ -115,7 +118,7 @@ export function createLoggerService({
           };
         }
         // Use console.error which is intercepted by LogInterceptor
-        console.error(`[${loggerConfig.service}] ${message}`, logMeta);
+        console.error(`[${serviceContext}] ${message}`, logMeta);
         // Also log to file
         logToFile("error", message, meta, error);
       }
@@ -124,7 +127,7 @@ export function createLoggerService({
     warn(message: string, meta?: Record<string, any>): void {
       if (shouldLog("warn")) {
         // Use console.warn which is intercepted by LogInterceptor
-        console.warn(`[${loggerConfig.service}] ${message}`, meta || {});
+        console.warn(`[${serviceContext}] ${message}`, meta || {});
         // Also log to file
         logToFile("warn", message, meta);
       }
@@ -133,7 +136,7 @@ export function createLoggerService({
     debug(message: string, meta?: Record<string, any>): void {
       if (shouldLog("debug")) {
         // Use console.debug which is intercepted by LogInterceptor
-        console.debug(`[${loggerConfig.service}] ${message}`, meta || {});
+        console.debug(`[${serviceContext}] ${message}`, meta || {});
         // Also log to file
         logToFile("debug", message, meta);
       }
@@ -142,5 +145,16 @@ export function createLoggerService({
     getLogger() {
       return logger;
     },
+
+    createChild(context: string): LoggerService {
+      return createLoggerInstance(loggerConfig, context);
+    },
   };
+}
+
+export function createLoggerService({
+  configService,
+}: LoggerDeps): LoggerService {
+  const loggerConfig = configService.getLoggerConfig();
+  return createLoggerInstance(loggerConfig);
 }

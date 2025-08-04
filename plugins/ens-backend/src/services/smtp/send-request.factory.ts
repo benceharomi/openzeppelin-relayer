@@ -3,7 +3,8 @@ import type { SmtpDeps, SendRequest } from "./types";
 export const createSendRequest =
   ({ configService, loggerService }: SmtpDeps): SendRequest =>
   async (request) => {
-    loggerService.info("Sending SMTP request", {
+    const logger = loggerService.createChild("smtp-send");
+    logger.info("Sending SMTP request", {
       to: request.to,
       subject: request.subject,
     });
@@ -27,7 +28,7 @@ export const createSendRequest =
     });
 
     if (!response.ok) {
-      loggerService.error(
+      logger.error(
         "SMTP request failed",
         new Error(`Status: ${response.status} ${response.statusText}`),
         {
@@ -40,7 +41,7 @@ export const createSendRequest =
       throw new Error(`SMTP request failed: ${response.statusText}`);
     }
 
-    loggerService.info("SMTP request sent successfully", {
+    logger.info("SMTP request sent successfully", {
       to: request.to,
       subject: request.subject,
       status: response.status,

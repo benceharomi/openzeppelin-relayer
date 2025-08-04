@@ -11,7 +11,8 @@ export const createInboxHandler =
     loggerService,
   }: InboxHandlerDeps): InboxHandler =>
   async (request) => {
-    loggerService.info("Received inbox request", request);
+    const logger = loggerService.createChild("inbox-handler");
+    logger.info("Received inbox request", request);
 
     const { email, verifier } = await commandRequestFromRawEmail(
       request.rawEmail

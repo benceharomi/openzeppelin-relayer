@@ -25,4 +25,5 @@ export type LoggerService = {
   warn(message: string, meta?: Record<string, any>): void;
   debug(message: string, meta?: Record<string, any>): void;
   getLogger(): Logger;
+  createChild(context: string): LoggerService;
 };

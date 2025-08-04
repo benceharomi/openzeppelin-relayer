@@ -11,7 +11,8 @@ export const createLoadAndRenderTemplate = ({
   const templateConfig = configService.getTemplateConfig();
 
   return async (fileName, args) => {
-    loggerService.info("Loading and rendering template", {
+    const logger = loggerService.createChild("load-and-render");
+    logger.info("Loading and rendering template", {
       fileName,
       templateDir: templateConfig.templateDirPath,
       argsCount: Object.keys(args).length,
@@ -23,7 +24,7 @@ export const createLoadAndRenderTemplate = ({
     );
     const result = populateTemplate({ loggerService })(template, args);
 
-    loggerService.info("Template rendered successfully", {
+    logger.info("Template rendered successfully", {
       fileName,
       resultLength: result.length,
     });
@@ -35,10 +36,11 @@ export const createLoadAndRenderTemplate = ({
 const loadTemplate =
   ({ loggerService }: { loggerService: LoggerService }) =>
   async (templateDirPath: string, fileName: string): Promise<string> => {
+    const logger = loggerService.createChild("load-template");
     const templatePath = join(templateDirPath, fileName);
 
     if (!existsSync(templatePath)) {
-      loggerService.error(
+      logger.error(
         "Template file not found",
         new Error(`Template file not found: ${templatePath}`),
         {
@@ -50,7 +52,7 @@ const loadTemplate =
       throw new Error(`Template file not found: ${templatePath}`);
     }
 
-    loggerService.debug("Reading template file", {
+    logger.debug("Reading template file", {
       templatePath,
       fileName,
     });
@@ -58,7 +60,7 @@ const loadTemplate =
     const template = await readFile(templatePath, "utf8");
 
     if (!template) {
-      loggerService.error(
+      logger.error(
         "Template file is empty",
         new Error(`Template file is empty: ${templatePath}`),
         {
@@ -75,9 +77,10 @@ const loadTemplate =
 const populateTemplate =
   ({ loggerService }: { loggerService: LoggerService }) =>
   (template: string, args: TemplateArg): string => {
+    const logger = loggerService.createChild("populate-template");
     const placeholders = template.match(/\{\{(.*?)\}\}/g) || [];
 
-    loggerService.debug("Populating template placeholders", {
+    logger.debug("Populating template placeholders", {
       placeholderCount: placeholders.length,
       placeholders: placeholders.map((p) => p.replace(/[{}]/g, "")),
       availableArgs: Object.keys(args),
