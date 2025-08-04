@@ -1,3 +1,5 @@
+import { LoggerService } from "../logger";
+
 export type TemplateConfig = {
   templateDirPath: string;
 };
@@ -8,6 +10,7 @@ export type TemplateConfigService = {
 
 export type TemplateDeps = {
   configService: TemplateConfigService;
+  loggerService: LoggerService;
 };
 
 export type TemplateArg = Record<string, string>;

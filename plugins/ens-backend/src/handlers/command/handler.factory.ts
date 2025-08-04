@@ -2,9 +2,13 @@ import { escape } from "html-escaper";
 import { CommandHandler, CommandHandlerDeps } from "./types";
 
 export const createCommandHandler =
-  ({ smtpService, templateService }: CommandHandlerDeps): CommandHandler =>
+  ({
+    smtpService,
+    templateService,
+    loggerService,
+  }: CommandHandlerDeps): CommandHandler =>
   async (request) => {
-    console.info("Command request:", request);
+    loggerService.info("Command request", request);
 
     const relayerData = JSON.stringify(request);
     const encodedRelayerData = escape(relayerData);

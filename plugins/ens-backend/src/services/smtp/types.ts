@@ -1,3 +1,5 @@
+import { LoggerService } from "../logger";
+
 export type SmtpConfig = {
   smtpUrl: string;
 };
@@ -8,6 +10,7 @@ export type SmtpConfigService = {
 
 export type SmtpDeps = {
   configService: SmtpConfigService;
+  loggerService: LoggerService;
 };
 
 export type SmtpRequest = {

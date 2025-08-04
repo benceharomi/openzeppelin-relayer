@@ -1,41 +1,87 @@
 import { readFile } from "fs/promises";
 import { LoadAndRenderTemplate, TemplateArg, TemplateDeps } from "./types";
+import { LoggerService } from "../logger";
 import { existsSync } from "fs";
 import { join } from "path";
 
 export const createLoadAndRenderTemplate = ({
   configService,
+  loggerService,
 }: TemplateDeps): LoadAndRenderTemplate => {
   const templateConfig = configService.getTemplateConfig();
 
   return async (fileName, args) => {
-    const template = await loadTemplate(
+    loggerService.info("Loading and rendering template", {
+      fileName,
+      templateDir: templateConfig.templateDirPath,
+      argsCount: Object.keys(args).length,
+    });
+
+    const template = await loadTemplate({ loggerService })(
       templateConfig.templateDirPath,
       fileName
     );
-    return populateTemplate(template, args);
+    const result = populateTemplate({ loggerService })(template, args);
+
+    loggerService.info("Template rendered successfully", {
+      fileName,
+      resultLength: result.length,
+    });
+
+    return result;
   };
 };
 
-const loadTemplate = async (
-  templateDirPath: string,
-  fileName: string
-): Promise<string> => {
-  const templatePath = join(templateDirPath, fileName);
+const loadTemplate =
+  ({ loggerService }: { loggerService: LoggerService }) =>
+  async (templateDirPath: string, fileName: string): Promise<string> => {
+    const templatePath = join(templateDirPath, fileName);
 
-  if (!existsSync(templatePath)) {
-    throw new Error(`Template file not found: ${templatePath}`);
-  }
+    if (!existsSync(templatePath)) {
+      loggerService.error(
+        "Template file not found",
+        new Error(`Template file not found: ${templatePath}`),
+        {
+          templatePath,
+          fileName,
+          templateDirPath,
+        }
+      );
+      throw new Error(`Template file not found: ${templatePath}`);
+    }
 
-  const template = await readFile(templatePath, "utf8");
+    loggerService.debug("Reading template file", {
+      templatePath,
+      fileName,
+    });
 
-  if (!template) {
-    throw new Error(`Template file is empty: ${templatePath}`);
-  }
+    const template = await readFile(templatePath, "utf8");
 
-  return template;
-};
+    if (!template) {
+      loggerService.error(
+        "Template file is empty",
+        new Error(`Template file is empty: ${templatePath}`),
+        {
+          templatePath,
+          fileName,
+        }
+      );
+      throw new Error(`Template file is empty: ${templatePath}`);
+    }
 
-const populateTemplate = (template: string, args: TemplateArg): string => {
-  return template.replace(/\{\{(.*?)\}\}/g, (match, p1) => args[p1] || match);
-};
+    return template;
+  };
+
+const populateTemplate =
+  ({ loggerService }: { loggerService: LoggerService }) =>
+  (template: string, args: TemplateArg): string => {
+    const placeholders = template.match(/\{\{(.*?)\}\}/g) || [];
+
+    loggerService.debug("Populating template placeholders", {
+      placeholderCount: placeholders.length,
+      placeholders: placeholders.map((p) => p.replace(/[{}]/g, "")),
+      availableArgs: Object.keys(args),
+    });
+
+    return template.replace(/\{\{(.*?)\}\}/g, (match, p1) => args[p1] || match);
+  };

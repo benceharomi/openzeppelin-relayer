@@ -1,8 +1,13 @@
 import type { SmtpDeps, SendRequest } from "./types";
 
 export const createSendRequest =
-  ({ configService }: SmtpDeps): SendRequest =>
+  ({ configService, loggerService }: SmtpDeps): SendRequest =>
   async (request) => {
+    loggerService.info("Sending SMTP request", {
+      to: request.to,
+      subject: request.subject,
+    });
+
     const smtpConfig = configService.getSmtpConfig();
 
     const response = await fetch(smtpConfig.smtpUrl, {
@@ -22,6 +27,22 @@ export const createSendRequest =
     });
 
     if (!response.ok) {
+      loggerService.error(
+        "SMTP request failed",
+        new Error(`Status: ${response.status} ${response.statusText}`),
+        {
+          to: request.to,
+          subject: request.subject,
+          status: response.status,
+          statusText: response.statusText,
+        }
+      );
       throw new Error(`SMTP request failed: ${response.statusText}`);
     }
+
+    loggerService.info("SMTP request sent successfully", {
+      to: request.to,
+      subject: request.subject,
+      status: response.status,
+    });
   };

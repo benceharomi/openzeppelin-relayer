@@ -1,3 +1,5 @@
+import { LoggerService } from "../logger";
+
 export type ProverConfig = {
   url: string;
   apiKey: string;
@@ -12,6 +14,7 @@ export type ProverConfigService = {
 
 export type ProverDeps = {
   configService: ProverConfigService;
+  loggerService: LoggerService;
 };
 
 export type ProveRequest = {

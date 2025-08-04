@@ -8,9 +8,10 @@ export const createInboxHandler =
     proverService,
     verifierService,
     templateService,
+    loggerService,
   }: InboxHandlerDeps): InboxHandler =>
   async (request) => {
-    console.info("Received inbox request", request);
+    loggerService.info("Received inbox request", request);
 
     const { email, verifier } = await commandRequestFromRawEmail(
       request.rawEmail

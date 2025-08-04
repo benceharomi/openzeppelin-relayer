@@ -1,3 +1,4 @@
+import { LoggerService } from "../../services/logger";
 import { ProverService } from "../../services/prover";
 import { SmtpService } from "../../services/smtp";
 import { TemplateService } from "../../services/template";
@@ -8,6 +9,7 @@ export type InboxHandlerDeps = {
   proverService: ProverService;
   verifierService: VerifierService;
   templateService: TemplateService;
+  loggerService: LoggerService;
 };
 
 export type InboxHandlerRequest = {

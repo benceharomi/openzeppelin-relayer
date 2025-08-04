@@ -1,10 +1,11 @@
 import { generateEmailCircuitInput, init } from "@zk-email/relayer-utils";
 import { GenerateProof, ProverDeps, ProveRequest } from "./types";
+import { LoggerService } from "../logger";
 
 export const createGenerateProof =
-  ({ configService }: ProverDeps): GenerateProof =>
+  ({ configService, loggerService }: ProverDeps): GenerateProof =>
   async (rawEmail) => {
-    console.info("Generating proof");
+    loggerService.info("Generating proof");
 
     const proverConfig = configService.getProverConfig();
 
@@ -13,7 +14,7 @@ export const createGenerateProof =
       proofId: "",
       zkeyDownloadUrl: proverConfig.zkeyDownloadUrl,
       circuitCppDownloadUrl: proverConfig.circuitCppDownloadUrl,
-      input: await generateInputs(rawEmail),
+      input: await generateInputs({ loggerService })(rawEmail),
     };
 
     const response = await fetch(proverConfig.url, {
@@ -32,33 +33,38 @@ export const createGenerateProof =
     return await response.json();
   };
 
-export async function generateInputs(rawEmail: string): Promise<any> {
-  console.info("Generating inputs");
+const generateInputs =
+  ({ loggerService }: { loggerService: LoggerService }) =>
+  async (rawEmail: string): Promise<any> => {
+    loggerService.info("Generating inputs");
 
-  await initWasm();
+    await initWasm();
 
-  const emailCircuitInput = await generateEmailCircuitInput(
-    rawEmail,
-    "0x0000000000000000000000000000000000000000000000000000000000000000",
-    {
-      ignoreBodyHashCheck: false,
-      maxBodyLength: 1024,
-      maxHeaderLength: 1024,
-      shaPrecomputeSelector: '(<div id=3D"[^"]*zkemail[^"]*"[^>]*>)',
+    const emailCircuitInput = await generateEmailCircuitInput(
+      rawEmail,
+      "0x0000000000000000000000000000000000000000000000000000000000000000",
+      {
+        ignoreBodyHashCheck: false,
+        maxBodyLength: 1024,
+        maxHeaderLength: 1024,
+        shaPrecomputeSelector: '(<div id=3D"[^"]*zkemail[^"]*"[^>]*>)',
+      }
+    ).catch((error) => {
+      loggerService.error("Failed to generate email circuit inputs", error);
+      throw error;
+    });
+
+    const json = JSON.parse(emailCircuitInput);
+    if (json.error) {
+      loggerService.error(
+        "Failed to convert inputs to json",
+        new Error(json.error)
+      );
+      throw new Error(json.error);
     }
-  ).catch((error) => {
-    console.error("Failed to generate email circuit inputs", error);
-    throw error;
-  });
 
-  const json = JSON.parse(emailCircuitInput);
-  if (json.error) {
-    console.error("Failed to convert inputs to json", json.error);
-    throw new Error(json.error);
-  }
-
-  return json;
-}
+    return json;
+  };
 
 let wasmPromise: Promise<void>;
 

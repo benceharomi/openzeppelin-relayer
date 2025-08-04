@@ -1,5 +1,6 @@
 import { PluginAPI } from "../../../../lib/plugin";
 import { ProverResponse } from "../prover";
+import { LoggerService } from "../logger";
 
 export type VerifierConfig = {
   rpcUrl: string;
@@ -13,6 +14,7 @@ export type VerifierConfigService = {
 export type VerifierDeps = {
   configService: VerifierConfigService;
   pluginApi: PluginAPI;
+  loggerService: LoggerService;
 };
 
 export type VerifyProof = (inputs: {

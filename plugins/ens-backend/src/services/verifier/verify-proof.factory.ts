@@ -7,20 +7,43 @@ const VERIFIER_ABI = [
 ];
 
 export const createVerifyProof =
-  ({ configService }: Omit<VerifierDeps, "pluginApi">): VerifyProof =>
+  ({
+    configService,
+    loggerService,
+  }: Omit<VerifierDeps, "pluginApi">): VerifyProof =>
   async ({ verifierAddress, proverResponse }) => {
+    loggerService.info("Starting proof verification", {
+      verifierAddress,
+      proofProtocol: proverResponse.proof.protocol,
+    });
+
     const { rpcUrl, privateKey } = configService.getVerifierConfig();
 
     const provider = new ethers.JsonRpcProvider(rpcUrl);
     const signer = new ethers.Wallet(privateKey, provider);
     const contract = new ethers.Contract(verifierAddress, VERIFIER_ABI, signer);
 
+    loggerService.info("Encoding proof data", {
+      publicOutputsCount: proverResponse.publicOutputs.length,
+      verifierAddress,
+    });
+
     const encodedCommand = await contract.encode(
       transformPublicSignals(proverResponse.publicOutputs),
       transformProof(proverResponse.proof)
     );
 
+    loggerService.info("Submitting transaction to verifier contract", {
+      verifierAddress,
+      encodedCommandLength: encodedCommand.length,
+    });
+
     const tx = await contract.entrypoint(encodedCommand);
+
+    loggerService.info("Proof verification transaction submitted", {
+      txHash: tx.hash,
+      verifierAddress,
+    });
 
     return { txHash: tx.hash };
   };
