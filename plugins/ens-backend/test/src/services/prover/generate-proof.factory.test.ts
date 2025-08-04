@@ -11,9 +11,11 @@ import {
   ProverConfig,
   ProverConfigService,
 } from "../../../../src/services/prover/types";
+import { LoggerService } from "../../../../src/services/logger";
 
 describe("generate-proof.factory", () => {
   let mockConfigService: ProverConfigService;
+  let mockLoggerService: LoggerService;
   let generateProof: ReturnType<typeof createGenerateProof>;
 
   beforeEach(() => {
@@ -27,7 +29,26 @@ describe("generate-proof.factory", () => {
       } as ProverConfig),
     };
 
-    generateProof = createGenerateProof({ configService: mockConfigService });
+    mockLoggerService = {
+      info: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+      getLogger: jest.fn(),
+      createChild: jest.fn().mockReturnValue({
+        info: jest.fn(),
+        error: jest.fn(),
+        warn: jest.fn(),
+        debug: jest.fn(),
+        getLogger: jest.fn(),
+        createChild: jest.fn(),
+      }),
+    } as LoggerService;
+
+    generateProof = createGenerateProof({
+      configService: mockConfigService,
+      loggerService: mockLoggerService,
+    });
   });
 
   afterEach(() => {
@@ -56,7 +77,9 @@ describe("generate-proof.factory", () => {
       const email = fs.readFileSync(emailPath, "utf-8");
       const expectedInputsStr = fs.readFileSync(inputsPath, "utf-8");
       const expectedInputs = JSON.parse(expectedInputsStr);
-      const inputs = await generateInputs(email);
+      const inputs = await generateInputs({ loggerService: mockLoggerService })(
+        email
+      );
 
       // Test exact equality like the Rust version
       expect(inputs).toEqual(expectedInputs);
@@ -94,20 +117,25 @@ describe("generate-proof.factory", () => {
         __dirname,
         `../../../fixtures/${fixtureDir}/email.eml`
       );
+      const inputsPath = path.join(
+        __dirname,
+        `../../../fixtures/${fixtureDir}/inputs.json`
+      );
       const proverResponsePath = path.join(
         __dirname,
         `../../../fixtures/${fixtureDir}/prover_response.json`
       );
 
       const rawEmail = fs.readFileSync(emailPath, "utf-8");
-      const inputs = await generateInputs(rawEmail);
+      const expectedInputsStr = fs.readFileSync(inputsPath, "utf-8");
+      const expectedInputs = JSON.parse(expectedInputsStr);
 
       const expectedRequest = {
         blueprintId: "dummy-blueprint",
         proofId: "",
         zkeyDownloadUrl: "http://example.com/circuit.zkey",
         circuitCppDownloadUrl: "http://example.com/circuit.cpp",
-        input: inputs,
+        input: expectedInputs,
       };
 
       const proverResponseStr = fs.readFileSync(proverResponsePath, "utf-8");

@@ -34,7 +34,7 @@ export const createGenerateProof =
     return await response.json();
   };
 
-const generateInputs =
+export const generateInputs =
   ({ loggerService }: { loggerService: LoggerService }) =>
   async (rawEmail: string): Promise<any> => {
     const logger = loggerService.createChild("generate-inputs");
