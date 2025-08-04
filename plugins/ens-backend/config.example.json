@@ -24,5 +24,7 @@
       "privateKey": "your-private-key-here"
     }
   ],
-  "smtpUrl": "http://localhost:3000/api/sendEmail"
+  "smtp": {
+    "url": "http://localhost:3000/api/sendEmail"
+  }
 }

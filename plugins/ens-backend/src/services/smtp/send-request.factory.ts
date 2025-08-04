@@ -11,7 +11,7 @@ export const createSendRequest =
 
     const smtpConfig = configService.getSmtpConfig();
 
-    const response = await fetch(smtpConfig.smtpUrl, {
+    const response = await fetch(smtpConfig.url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

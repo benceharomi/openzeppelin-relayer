@@ -10,14 +10,6 @@ const chainConfigSchema = Joi.object({
   privateKey: Joi.string().required(),
 });
 
-const proverConfigSchema = Joi.object({
-  url: Joi.string().required(),
-  apiKey: Joi.string().required(),
-  blueprintId: Joi.string().required(),
-  circuitCppDownloadUrl: Joi.string().uri().required(),
-  zkeyDownloadUrl: Joi.string().uri().required(),
-});
-
 const loggerConfigSchema = Joi.object({
   service: Joi.string().required(),
   level: Joi.string().valid("debug", "info", "warn", "error").required(),
@@ -29,8 +21,20 @@ const loggerConfigSchema = Joi.object({
   }).required(),
 });
 
+const proverConfigSchema = Joi.object({
+  url: Joi.string().required(),
+  apiKey: Joi.string().required(),
+  blueprintId: Joi.string().required(),
+  circuitCppDownloadUrl: Joi.string().uri().required(),
+  zkeyDownloadUrl: Joi.string().uri().required(),
+});
+
+const smtpConfigSchema = Joi.object({
+  url: Joi.string().uri().required(),
+});
+
 const configFileSchema = Joi.object({
-  smtpUrl: Joi.string().uri().required(),
+  smtp: smtpConfigSchema.required(),
   prover: proverConfigSchema.required(),
   logger: loggerConfigSchema.required(),
   rpc: Joi.array().items(chainConfigSchema).min(1).required(),
@@ -69,7 +73,7 @@ export const loadConfig = async (
 
     return {
       smtp: {
-        smtpUrl: value.smtpUrl,
+        url: value.url,
       },
       prover: value.prover,
       verifier: {
