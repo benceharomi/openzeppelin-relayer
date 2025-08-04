@@ -18,9 +18,21 @@ const proverConfigSchema = Joi.object({
   zkeyDownloadUrl: Joi.string().uri().required(),
 });
 
+const loggerConfigSchema = Joi.object({
+  service: Joi.string().required(),
+  level: Joi.string().valid("debug", "info", "warn", "error").required(),
+  file: Joi.object({
+    enabled: Joi.boolean().required(),
+    path: Joi.string().required(),
+    maxSize: Joi.string().required(),
+    maxFiles: Joi.number().integer().positive().required(),
+  }).required(),
+});
+
 const configFileSchema = Joi.object({
   smtpUrl: Joi.string().uri().required(),
   prover: proverConfigSchema.required(),
+  logger: loggerConfigSchema.required(),
   rpc: Joi.array().items(chainConfigSchema).min(1).required(),
 });
 
@@ -67,6 +79,7 @@ export const loadConfig = async (
       template: {
         templateDirPath: join(libDirPath, "templates"),
       },
+      logger: value.logger,
     };
   } catch (error) {
     throw new Error(

@@ -1,5 +1,14 @@
 {
-  "smtpUrl": "http://localhost:3000/api/sendEmail",
+  "logger": {
+    "service": "ens-backend",
+    "level": "info",
+    "file": {
+      "enabled": true,
+      "path": "./plugins/ens-backend/logs/ens-backend.log",
+      "maxSize": "10MB",
+      "maxFiles": 5
+    }
+  },
   "prover": {
     "url": "https://prover.zk.email/api/prove",
     "apiKey": "your-api-key-here",
@@ -8,11 +17,12 @@
     "zkeyDownloadUrl": "https://storage.googleapis.com/circom-ether-email-auth/reveal/circuit_zkey.zip"
   },
   "rpc": [
-      {
-        "name": "default",
-        "chainId": 11155111,
-        "url": "https://eth-sepolia.g.alchemy.com/v2/your-alchemy-key-here",
-        "privateKey": "your-private-key-here"
-      }
-    ]
+    {
+      "name": "default",
+      "chainId": 11155111,
+      "url": "https://eth-sepolia.g.alchemy.com/v2/your-alchemy-key-here",
+      "privateKey": "your-private-key-here"
+    }
+  ],
+  "smtpUrl": "http://localhost:3000/api/sendEmail"
 }

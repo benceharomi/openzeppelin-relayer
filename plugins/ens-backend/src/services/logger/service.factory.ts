@@ -1,29 +1,18 @@
 import pino from "pino";
-import { join } from "path";
-import type { LoggerService, LoggerServiceConfig } from "./types";
+import type { LoggerDeps, LoggerService } from "./types";
 
-export function createLoggerService(
-  config: LoggerServiceConfig = {}
-): LoggerService {
-  const {
-    level = process.env.LOG_LEVEL || "info",
-    prettyPrint = false, // Disabled by default for plugin environment
-    service = "ens-backend",
-    file = {
-      enabled: true,
-      path: "logs/ens-backend.log",
-      maxSize: "10MB",
-      maxFiles: 5,
-    },
-  } = config;
+export function createLoggerService({
+  configService,
+}: LoggerDeps): LoggerService {
+  const loggerConfig = configService.getLoggerConfig();
 
   // Create a logger that's compatible with the plugin framework
   // Use stderr for pino output to avoid interfering with LogInterceptor
   const logger = pino(
     {
-      level,
+      level: loggerConfig.level,
       base: {
-        service,
+        service: loggerConfig.service,
       },
     },
     pino.destination({ dest: 2, sync: false })
@@ -31,12 +20,12 @@ export function createLoggerService(
 
   // Create file logger if enabled
   let fileLogger: pino.Logger | null = null;
-  if (file.enabled && file.path) {
+  if (loggerConfig.file.enabled && loggerConfig.file.path) {
     try {
       // Create logs directory if it doesn't exist
       const fs = require("fs");
       const path = require("path");
-      const logDir = path.dirname(file.path);
+      const logDir = path.dirname(loggerConfig.file.path);
       if (!fs.existsSync(logDir)) {
         fs.mkdirSync(logDir, { recursive: true });
       }
@@ -44,16 +33,16 @@ export function createLoggerService(
       // Create rotating file logger
       fileLogger = pino(
         {
-          level,
+          level: loggerConfig.level,
           base: {
-            service,
+            service: loggerConfig.service,
             hostname: require("os").hostname(),
             pid: process.pid,
           },
           timestamp: pino.stdTimeFunctions.isoTime,
         },
         pino.destination({
-          dest: file.path,
+          dest: loggerConfig.file.path,
           sync: false,
           mkdir: true,
         })
@@ -65,7 +54,8 @@ export function createLoggerService(
 
   // Level hierarchy: error(0) > warn(1) > info(2) > debug(3)
   const levelMap = { error: 0, warn: 1, info: 2, debug: 3 };
-  const currentLevel = levelMap[level as keyof typeof levelMap] ?? 2;
+  const currentLevel =
+    levelMap[loggerConfig.level as keyof typeof levelMap] ?? 2;
 
   function shouldLog(logLevel: keyof typeof levelMap): boolean {
     return levelMap[logLevel] <= currentLevel;
@@ -108,7 +98,7 @@ export function createLoggerService(
     info(message: string, meta?: Record<string, any>): void {
       if (shouldLog("info")) {
         // Use console.info which is intercepted by LogInterceptor for structured output
-        console.info(`[${service}] ${message}`, meta || {});
+        console.info(`[${loggerConfig.service}] ${message}`, meta || {});
         // Also log to file
         logToFile("info", message, meta);
       }
@@ -125,7 +115,7 @@ export function createLoggerService(
           };
         }
         // Use console.error which is intercepted by LogInterceptor
-        console.error(`[${service}] ${message}`, logMeta);
+        console.error(`[${loggerConfig.service}] ${message}`, logMeta);
         // Also log to file
         logToFile("error", message, meta, error);
       }
@@ -134,7 +124,7 @@ export function createLoggerService(
     warn(message: string, meta?: Record<string, any>): void {
       if (shouldLog("warn")) {
         // Use console.warn which is intercepted by LogInterceptor
-        console.warn(`[${service}] ${message}`, meta || {});
+        console.warn(`[${loggerConfig.service}] ${message}`, meta || {});
         // Also log to file
         logToFile("warn", message, meta);
       }
@@ -143,7 +133,7 @@ export function createLoggerService(
     debug(message: string, meta?: Record<string, any>): void {
       if (shouldLog("debug")) {
         // Use console.debug which is intercepted by LogInterceptor
-        console.debug(`[${service}] ${message}`, meta || {});
+        console.debug(`[${loggerConfig.service}] ${message}`, meta || {});
         // Also log to file
         logToFile("debug", message, meta);
       }

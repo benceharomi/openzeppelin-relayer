@@ -1,2 +1,2 @@
 export { createLoggerService } from "./service.factory";
-export type { LoggerService, LoggerServiceConfig } from "./types";
+export type { LoggerConfig, LoggerConfigService, LoggerService } from "./types";

@@ -40,18 +40,7 @@ async function main(
   const config = await loadConfig(join(__dirname, ".."), "config.json");
   const configService = createConfigService({ config });
 
-  const loggerService = createLoggerService({
-    service: "ens-backend",
-    level: process.env.LOG_LEVEL || "info",
-    file: {
-      enabled: process.env.LOG_TO_FILE !== "false", // Enable by default, disable with LOG_TO_FILE=false
-      path:
-        process.env.LOG_FILE_PATH ||
-        "./plugins/ens-backend/logs/ens-backend.log",
-      maxSize: process.env.LOG_MAX_SIZE || "10MB",
-      maxFiles: parseInt(process.env.LOG_MAX_FILES || "5"),
-    },
-  });
+  const loggerService = createLoggerService({ configService });
 
   loggerService.info("ENS Backend plugin starting", { action });
 
