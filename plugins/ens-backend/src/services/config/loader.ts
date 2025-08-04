@@ -72,9 +72,7 @@ export const loadConfig = async (
     }
 
     return {
-      smtp: {
-        url: value.url,
-      },
+      smtp: value.smtp,
       prover: value.prover,
       verifier: {
         rpcUrl: value.rpc[0].url,
